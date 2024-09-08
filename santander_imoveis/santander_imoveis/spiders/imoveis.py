@@ -13,6 +13,8 @@ class MovelSpider(scrapy.Spider):
         "https://www.santanderimoveis.com.br/venda/imovel/casa-a-venda-na-rua-lamartine-babo-paulinia-sp-codigo-6663-santander-imoveis/",
     ]
 
+
+    # Forma de burlar os bloqueadores da pagina, isso garante que tera uma resposta de status 200 do site
     def start_requests(self):
         user_agents = [
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
@@ -25,6 +27,7 @@ class MovelSpider(scrapy.Spider):
 
         for imoveis in response.css('body'):
 
+            # Estração de dados da pagina que não precisam ser manipulados
             # ---------------------------- # ---------------------------- #
 
             title = imoveis.css('section.main-top h1::text').get()
@@ -43,24 +46,25 @@ class MovelSpider(scrapy.Spider):
             source_id = imoveis.css('span.badge::text').get()
             source_id = source_id[6:14]
 
+            # Estração de valor, retirada do $ e transformação em apenas números
             # ---------------------------- # ---------------------------- #
 
             evaluation = re.findall(
                 r'\d+', imoveis.css('div.values-line-values div:nth-of-type(2) strong::text').get())
             evaluation = ''.join(evaluation)
 
-            # ---------------------------- # ---------------------------- #
-
             value = re.findall(
                 r'\d+', imoveis.css('div.values-line-values div strong::text').get())
             value = ''.join(value)
 
+            # Verificando se o imovesl esta ocupado e retornando false se entiver
             # ---------------------------- # ---------------------------- #
 
             is_vacant_text = imoveis.css(
                 'section.main-top div strong::text').get()
             is_vacant = False if 'ocupado' in is_vacant_text.lower() else True
 
+            # Estraindo dados de um p e filtrando para pegar apenas dados em forma de data
             # ---------------------------- # ---------------------------- #
 
             date = response.css('p::text').re_first(
@@ -69,6 +73,7 @@ class MovelSpider(scrapy.Spider):
                 date = re.sub(
                     r'(\d{2})/(\d{2})/(\d{4}) - (\d{2}):(\d{2})', r'\3-\2-\1T\4:\5:00', date)
 
+            # Extrai a url do anunciante
             # ---------------------------- # ---------------------------- #
 
             target_url = imoveis.css(
@@ -76,11 +81,13 @@ class MovelSpider(scrapy.Spider):
 
             auctioneer_url = re.match(r'https?://[^/]+', target_url).group(0)
 
+            # Extrai da pagina o tipo de imovel
             # ---------------------------- # ---------------------------- #
 
             property_type = imoveis.css('section.main-top h1::text').get()
             property_type = re.match(r'[^\s]+', property_type).group(0)
 
+            # Extrai da pagina um texto e manipula para obter a area e a area total do imovel
             # ---------------------------- # ---------------------------- #
 
             area = imoveis.css(
@@ -89,6 +96,7 @@ class MovelSpider(scrapy.Spider):
             land_area = area[0:3]
             total_area = area[22:25]
 
+            # Acessa o script da pagina e pega o url da imagem do imovel
             # ---------------------------- # ---------------------------- #
 
             script_tag = response.css(
@@ -101,6 +109,7 @@ class MovelSpider(scrapy.Spider):
                 if item['@type'] == 'ImageObject':
                     image_url = item['url']
 
+            # Pega os dados de um p e pega certas partes do texto para obter as informações sobre o endereço
             # ---------------------------- # ---------------------------- #
 
             place_property = imoveis.css('section.main-top p::text').get()
