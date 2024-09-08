@@ -13,8 +13,8 @@ class MovelSpider(scrapy.Spider):
         "https://www.santanderimoveis.com.br/venda/imovel/casa-a-venda-na-rua-lamartine-babo-paulinia-sp-codigo-6663-santander-imoveis/",
     ]
 
-
     # Forma de burlar os bloqueadores da pagina, isso garante que tera uma resposta de status 200 do site
+
     def start_requests(self):
         user_agents = [
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
@@ -57,7 +57,7 @@ class MovelSpider(scrapy.Spider):
                 r'\d+', imoveis.css('div.values-line-values div strong::text').get())
             value = ''.join(value)
 
-            # Verificando se o imovesl esta ocupado e retornando false se entiver
+            # Verificando se o imovesl esta ocupado e retornando false se estiver
             # ---------------------------- # ---------------------------- #
 
             is_vacant_text = imoveis.css(
@@ -120,6 +120,7 @@ class MovelSpider(scrapy.Spider):
             state = place_property[129:131]
             zip_code = place_property[138:146]
 
+            # Usa o geopy para obter as coordenadas do imovel, ele analisa as informações coletadas acima e apartir disso calcula as coordenadas
             def get_lat_long(full_address):
                 geolocator = Nominatim(user_agent="Aplication_property")
                 location = geolocator.geocode(full_address)
