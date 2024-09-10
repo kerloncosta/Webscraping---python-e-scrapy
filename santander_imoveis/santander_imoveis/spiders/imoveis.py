@@ -132,8 +132,8 @@ class MovelSpider(scrapy.Spider):
                 else:
                     return None, None
 
-            full_address = f"{address}, {
-                neighborhood}, {city}, {state}, Brazil"
+            full_address = f"{address}, 
+            {neighborhood}, {city}, {state}, Brazil"
             latitude, longitude = get_lat_long(full_address)
             time.sleep(1)
 
