@@ -35,8 +35,9 @@ class MovelSpider(scrapy.Spider):
 
             title = imoveis.css('section.main-top h1::text').get()
 
-            auctioneer = imoveis.css(
-                'section.main-atendimento div strong::text').get()
+            # O código comentado a baixo era o responsável por pegar a informação sobre quem era o anunciante, claro isso antes o imóvel parar de se anunciado
+            # auctioneer = imoveis.css('section.main-atendimento div strong::text').get()
+            auctioneer = "Agurdando o imóvel ter um anunciante"
 
             description = imoveis.css('section.main-info li::text').get()
 
@@ -70,20 +71,22 @@ class MovelSpider(scrapy.Spider):
             # ---------------------------- # ---------------------------- #
             # Extração e formatação da data
 
-            date = response.css('p::text').re_first(
-                r'\d{2}/\d{2}/\d{4} - \d{2}:\d{2}')
-            if date:
-                date = re.sub(
-                    r'(\d{2})/(\d{2})/(\d{4}) - (\d{2}):(\d{2})', r'\3-\2-\1T\4:\5:00', date)
+            # O código comentado a baixo era responsavel por localizar na pagina a data do leilão e pega-la, entretanto a data foi alterada e não houve divulgação de uma nova data para o leilão.
+            # date = response.css('p::text').re_first(r'\d{2}/\d{2}/\d{4} - \d{2}:\d{2}')
+            # if date:
+            # date = re.sub( r'(\d{2})/(\d{2})/(\d{4}) - (\d{2}):(\d{2})', r'\3-\2-\1T\4:\5:00', date)
+
+            date = "Aguardando data do leilão"
 
             # ---------------------------- # ---------------------------- #
             # Extração da URL do anunciante
 
-            target_url = imoveis.css(
-                'section.main-atendimento div a::attr(href)').get()
+            # O código comentado a baixo era responsavel por localizar na pagina A url do anunciante e manipula-la para poder obter a url alvo. Como o imóvel não possui mais um anunciante esses campos não podem ser pegos da página.
+            # target_url = imoveis.css('section.main-atendimento div a::attr(href)').get()
+            # auctioneer_url = re.match(r'https?://[^/]+', target_url).group(0)
 
-            auctioneer_url = re.match(r'https?://[^/]+', target_url).group(0)
-
+            target_url = "Aguardando um url alvo"
+            auctioneer_url = "Aguardando um anunciante para poder pegar o url"
             # ---------------------------- # ---------------------------- #
             # Extração do tipo de imóvel
 
@@ -132,8 +135,8 @@ class MovelSpider(scrapy.Spider):
                 else:
                     return None, None
 
-            full_address = f"{address}, 
-            {neighborhood}, {city}, {state}, Brazil"
+            full_address = f"{address}, {
+                neighborhood}, {city}, {state}, Brazil"
             latitude, longitude = get_lat_long(full_address)
             time.sleep(1)
 
