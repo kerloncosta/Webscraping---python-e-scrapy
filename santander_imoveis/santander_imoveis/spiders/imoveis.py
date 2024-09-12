@@ -40,7 +40,7 @@ class MovelSpider(scrapy.Spider):
             auctioneer = imoveis.css(
                 'section.main-atendimento div strong::text').get()
             if not auctioneer:
-                auctioneer = "O imóvel não possui uma anunciante no momento"
+                auctioneer = "O imóvel não possui um anunciante no momento"
 
             description = imoveis.css('section.main-info li::text').get()
 
@@ -94,7 +94,7 @@ class MovelSpider(scrapy.Spider):
                 auctioneer_url = re.match(
                     r'https?://[^/]+', target_url).group(0)
             else:
-                auctioneer_url = "O imóvel não possui url do anuncoante, pois não tem anunciante"
+                auctioneer_url = "O imóvel não possui url do anunciante, pois não tem anunciante"
             # ---------------------------- # ---------------------------- #
             # Extração do tipo de imóvel
 
