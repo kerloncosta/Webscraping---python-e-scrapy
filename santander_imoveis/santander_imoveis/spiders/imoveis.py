@@ -11,10 +11,12 @@ from geopy.geocoders import Nominatim
 # pip install -r requirements.txt
 
 
+# O url não é o do desafio pois o anuncio que era para usar, saiu do ar
+# por esse motivo eu escolhi outro imóvel para coletar as informçãoes.
 class MovelSpider(scrapy.Spider):
     name = "imovel"
     start_urls = [
-        "https://www.santanderimoveis.com.br/venda/imovel/casa-a-venda-na-rua-lamartine-babo-paulinia-sp-codigo-6663-santander-imoveis/",
+        "https://www.santanderimoveis.com.br/venda/imovel/apartamento-a-venda-na-avenida-napoles-olinda-pe-codigo-02-21804-santander-imoveis/",
     ]
 
     # Método para iniciar as requisições, utilizando diferentes user agents para evitar bloqueios
@@ -35,9 +37,10 @@ class MovelSpider(scrapy.Spider):
 
             title = imoveis.css('section.main-top h1::text').get()
 
-            # O código comentado a baixo era o responsável por pegar a informação sobre quem era o anunciante, claro isso antes o imóvel parar de se anunciado
-            # auctioneer = imoveis.css('section.main-atendimento div strong::text').get()
-            auctioneer = "Agurdando o imóvel ter um anunciante"
+            auctioneer = imoveis.css(
+                'section.main-atendimento div strong::text').get()
+            if not auctioneer:
+                auctioneer = "O imóvel não possui uma anunciante no momento"
 
             description = imoveis.css('section.main-info li::text').get()
 
@@ -71,22 +74,27 @@ class MovelSpider(scrapy.Spider):
             # ---------------------------- # ---------------------------- #
             # Extração e formatação da data
 
-            # O código comentado a baixo era responsavel por localizar na pagina a data do leilão e pega-la, entretanto a data foi alterada e não houve divulgação de uma nova data para o leilão.
-            # date = response.css('p::text').re_first(r'\d{2}/\d{2}/\d{4} - \d{2}:\d{2}')
-            # if date:
-            # date = re.sub( r'(\d{2})/(\d{2})/(\d{4}) - (\d{2}):(\d{2})', r'\3-\2-\1T\4:\5:00', date)
-
-            date = "Aguardando data do leilão"
+            date = response.css('p::text').re_first(
+                r'\d{2}/\d{2}/\d{4} - \d{2}:\d{2}')
+            if date:
+                date = re.sub(
+                    r'(\d{2})/(\d{2})/(\d{4}) - (\d{2}):(\d{2})', r'\3-\2-\1T\4:\5:00', date)
+            else:
+                date = "A data do leilão foi removida ou ainda não foi informada"
 
             # ---------------------------- # ---------------------------- #
             # Extração da URL do anunciante
 
-            # O código comentado a baixo era responsavel por localizar na pagina A url do anunciante e manipula-la para poder obter a url alvo. Como o imóvel não possui mais um anunciante esses campos não podem ser pegos da página.
-            # target_url = imoveis.css('section.main-atendimento div a::attr(href)').get()
-            # auctioneer_url = re.match(r'https?://[^/]+', target_url).group(0)
+            target_url = imoveis.css(
+                'section.main-atendimento div a::attr(href)').get()
+            if not target_url:
+                target_url = "Não há url alvo na página"
 
-            target_url = "Aguardando um url alvo"
-            auctioneer_url = "Aguardando um anunciante para poder pegar o url"
+            if target_url != "Não há url alvo na página":
+                auctioneer_url = re.match(
+                    r'https?://[^/]+', target_url).group(0)
+            else:
+                auctioneer_url = "O imóvel não possui url do anuncoante, pois não tem anunciante"
             # ---------------------------- # ---------------------------- #
             # Extração do tipo de imóvel
 
@@ -99,8 +107,8 @@ class MovelSpider(scrapy.Spider):
             area = imoveis.css(
                 'section.main-info p:nth-of-type(4) strong::text').get()
 
-            land_area = area[0:3]
-            total_area = area[22:25]
+            land_area = area[26:28]
+            total_area = area[0:3]
 
             # ---------------------------- # ---------------------------- #
             # Extração da URL da imagem do imóvel a partir do script JSON-LD
@@ -120,11 +128,11 @@ class MovelSpider(scrapy.Spider):
 
             place_property = imoveis.css('section.main-top p::text').get()
 
-            address = place_property[0:23]
-            neighborhood = place_property[106:116]
-            city = place_property[118:126]
-            state = place_property[129:131]
-            zip_code = place_property[138:146]
+            address = place_property[0:20]
+            neighborhood = place_property[75:91]
+            city = place_property[93:99]
+            state = place_property[102:104]
+            zip_code = place_property[111:119]
 
             # Função para obter as coordenadas do imóvel usando geopy
             def get_lat_long(full_address):
@@ -135,8 +143,8 @@ class MovelSpider(scrapy.Spider):
                 else:
                     return None, None
 
-            full_address = f"{address}, {
-                neighborhood}, {city}, {state}, Brazil"
+            full_address = f"{address}, {neighborhood}, 
+            {city}, {state}, Brazil"
             latitude, longitude = get_lat_long(full_address)
             time.sleep(1)
 
